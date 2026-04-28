@@ -1,0 +1,54 @@
+
+name: sahalat
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.9.2 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  mobile_scanner: ^6.0.0  
+  
+
+# تسجيل الدخول والحالة
+  firebase_core: ^4.4.0
+  firebase_auth: ^6.1.4
+  google_sign_in: ^6.1.5
+  provider: ^6.1.1
+
+# التعريب واللغات
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+
+# واجهة المستخدم / أدوات
+  cupertino_icons: ^1.0.8
+  device_frame: ^1.1.0
+
+# الكاميرا والـ QR (للويب أضفنا camera_web)
+  camera: ^0.10.5+5
+  camera_web: ^0.3.5
+  qr_flutter: ^4.1.0
+  cloud_firestore: ^6.1.2
+  permission_handler: ^11.4.0
+  geolocator: ^13.0.1
+  image: ^4.0.17
+  http: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+# لو ما عندك شعار الآن، اتركيها معلّقة أو احذفيها
+  assets:
+    - assets/qr_dashboard.jpg
+    - assets/logo.png
+    - assets/stadium.png
+    - assets/models/csrnet.onnx

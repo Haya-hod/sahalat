@@ -1,0 +1,62 @@
+Unity as a Library — Sahalat Flutter (com.example.sahalat)
+============================================================
+
+1) In Unity (SahalatARFinal)
+   - Open the scene that ships in the player (e.g. Assets/Scenes/SampleScene).
+   - Confirm a root GameObject is named exactly: FlutterBridge
+     (SampleScene includes FlutterBridge wired to SahalatNavigator on the AR prefab.)
+   - File → Build Settings → Android → check “Export Project” (wording varies by Unity version).
+   - Export. Unity creates a folder that contains `unityLibrary` (and often `launcher`).
+
+2) Copy into this Flutter app
+   - Copy the exported `unityLibrary` folder into:
+       sahalat/android/unityLibrary
+     so you have:
+       android/unityLibrary/build.gradle   (or build.gradle.kts)
+       android/unityLibrary/src/...
+   - Copy the export’s `shared` folder to `android/shared` (Gradle scripts referenced by unityLibrary).
+   - After each fresh Unity export, remove the LAUNCHER intent-filter from
+     `android/unityLibrary/src/main/AndroidManifest.xml` on `UnityPlayerGameActivity`
+     so only the Flutter app appears in the app drawer (this repo’s copy is already patched).
+   - If Gradle says `keepUnitySymbols.gradle` is missing, you skipped `shared`.
+   - Add to `android/gradle.properties` (if missing): `unityStreamingAssets=` plus
+     `unity.androidSdkPath` / `unity.androidNdkPath` pointing at your Unity 6000.4 AndroidPlayer SDK/NDK.
+   - If `il2cpp.exe` is missing under `Il2CppOutputProject/IL2CPP/build/deploy`, copy that folder from
+     `Unity Hub Editor/.../Editor/Data/il2cpp/build/deploy` into the same path inside `unityLibrary`.
+   - Re-export Unity after changing `FlutterBridge.cs` so the player includes
+     `ApplyPendingNavigationFromAndroid` (route from Flutter when opening AR).
+   - Do NOT replace the Flutter `android/app` module; only add `unityLibrary` beside `app`.
+
+3) Gradle / AGP 8
+   - Unity’s `unityLibrary/build.gradle` may need `namespace "com.unity3d.player"` (or similar)
+     inside `android { }` if the build complains about a missing namespace.
+   - Align `minSdk` / `compileSdk` with Flutter if Gradle reports a mismatch (raise Flutter’s
+     `minSdk` in android/app/build.gradle.kts or lower Unity’s export minSdk — pick what matches
+     your devices).
+
+4) Build
+   - From the Flutter project: `flutter clean` then `flutter build apk` (or run from IDE).
+   - If `unityLibrary` is absent, the app still builds; MainActivity then logs that Unity is
+     not embedded until you complete steps 1–2.
+
+5) Flutter ↔ Unity messages
+   - GameObject name must stay `FlutterBridge` (UnitySendMessage target).
+   - Methods used from Kotlin: ReceiveSimplePathMessage, ReceivePathFromFlutter.
+   - Node IDs in Flutter (StadiumLayout) must match Unity StadiumLayout keys or coordinates
+     are skipped when mapping the path.
+
+6) Automated export from SahalatARFinal (recommended)
+   - Close all Unity Editor windows for this project (batch export cannot run while the
+     project is open).
+   - Unity menu (optional): Sahalat → Export Android Library for Flutter — or run batch:
+       "C:\Program Files\Unity\Hub\Editor\6000.4.0f1\Editor\Unity.exe" -batchmode -quit
+       -projectPath "C:\xampp\htdocs\haya2\SahalatARFinal"
+       -executeMethod SahalatFlutterAndroidExport.ExportForFlutter
+       -logFile "C:\xampp\htdocs\haya2\SahalatARFinal\Builds\unity_export.log"
+   - Output folder: SahalatARFinal\Builds\AndroidFlutterExport\ (contains unityLibrary, shared, launcher).
+   - Sync into Flutter (removes Unity LAUNCHER intent, mirrors folders):
+       powershell -ExecutionPolicy Bypass -File "C:\xampp\htdocs\haya2\tools\sync_unity_export_to_flutter.ps1"
+   - Or run the one-shot script (export + sync + apk) after closing Unity:
+       powershell -ExecutionPolicy Bypass -File "C:\xampp\htdocs\haya2\tools\run_full_unity_flutter_android.ps1"
+   - If the APK showed only the default skybox, the old unityLibrary was a blank template;
+     after the steps above, Assembly-CSharp in unityLibrary must include FlutterBridge / SahalatNavigator.
