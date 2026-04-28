@@ -24,10 +24,10 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
     final isAr = lang == 'ar';
     final isFr = lang == 'fr';
     return [
-      {'id': 'info', 'label': isAr ? 'معلومة' : (isFr ? 'Info' : 'Info'), 'icon': Icons.info_rounded, 'color': const Color(0xFF0891B2)},
-      {'id': 'warning', 'label': isAr ? 'تحذير' : (isFr ? 'Attention' : 'Warning'), 'icon': Icons.warning_rounded, 'color': AppColors.warning},
-      {'id': 'emergency', 'label': isAr ? 'طارئ' : (isFr ? 'Urgence' : 'Emergency'), 'icon': Icons.emergency_rounded, 'color': AppColors.error},
-      {'id': 'success', 'label': isAr ? 'تحديث' : (isFr ? 'Mise à jour' : 'Update'), 'icon': Icons.check_circle_rounded, 'color': AppColors.green},
+      {'id': 'info',     'label': isAr ? 'معلومة'  : (isFr ? 'Info'      : 'Info'),      'icon': Icons.info_rounded,          'color': const Color(0xFF0891B2)},
+      {'id': 'warning',  'label': isAr ? 'تحذير'   : (isFr ? 'Attention' : 'Warning'),   'icon': Icons.warning_rounded,       'color': AppColors.warning},
+      {'id': 'emergency','label': isAr ? 'طارئ'    : (isFr ? 'Urgence'   : 'Emergency'), 'icon': Icons.emergency_rounded,     'color': AppColors.error},
+      {'id': 'success',  'label': isAr ? 'تحديث'   : (isFr ? 'Mise à jour':'Update'),    'icon': Icons.check_circle_rounded,  'color': AppColors.green},
     ];
   }
 
@@ -35,10 +35,10 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
     final isAr = lang == 'ar';
     final isFr = lang == 'fr';
     return [
-      {'id': 'all', 'label': isAr ? 'جميع المستخدمين' : (isFr ? 'Tous' : 'All Users')},
-      {'id': 'vip', 'label': isAr ? 'VIP فقط' : (isFr ? 'VIP seulement' : 'VIP Only')},
-      {'id': 'standard', 'label': isAr ? 'عادي' : (isFr ? 'Standard' : 'Standard')},
-      {'id': 'family', 'label': isAr ? 'عائلي' : (isFr ? 'Famille' : 'Family')},
+      {'id': 'all',      'label': isAr ? 'جميع المستخدمين' : (isFr ? 'Tous'         : 'All Users')},
+      {'id': 'vip',      'label': isAr ? 'VIP فقط'         : (isFr ? 'VIP seulement': 'VIP Only')},
+      {'id': 'standard', 'label': isAr ? 'عادي'            : (isFr ? 'Standard'     : 'Standard')},
+      {'id': 'family',   'label': isAr ? 'عائلي'           : (isFr ? 'Famille'      : 'Family')},
     ];
   }
 
@@ -78,15 +78,24 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
     final msg = _msgCtrl.text.trim();
     if (msg.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(isAr ? 'أدخل نص الرسالة' : 'Enter a message'), backgroundColor: AppColors.error),
+        SnackBar(
+          content: Text(isAr ? 'أدخل نص الرسالة' : 'Enter a message'),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
 
     setState(() => _isSending = true);
 
-    context.read<BroadcastStore>().addMessage(message: msg, type: _selectedType, audience: _targetAudience);
+    // Save to BroadcastStore (works offline — no Firebase needed)
+    context.read<BroadcastStore>().addMessage(
+      message:  msg,
+      type:     _selectedType,
+      audience: _targetAudience,
+    );
 
+    // Try Firebase (optional) with timeout
     try {
       await FirebaseFirestore.instance.collection('broadcasts').add({
         'message': msg,
@@ -95,20 +104,22 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
         'sentAt': FieldValue.serverTimestamp(),
         'read': false,
       }).timeout(const Duration(seconds: 5));
-    } catch (_) {}
+    } catch (_) {
+      // Firebase unavailable — message already saved locally via BroadcastStore.
+    }
 
     if (!mounted) return;
-    setState(() {
-      _sent = true;
-      _isSending = false;
-    });
+    setState(() { _sent = true; _isSending = false; });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(children: [
           const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
           const SizedBox(width: 8),
-          Expanded(child: Text(isAr ? 'تم الإرسال بنجاح!' : 'Broadcast sent!', overflow: TextOverflow.ellipsis)),
+          Expanded(child: Text(
+            isAr ? 'تم الإرسال بنجاح!' : 'Broadcast sent!',
+            overflow: TextOverflow.ellipsis,
+          )),
         ]),
         backgroundColor: AppColors.green,
         behavior: SnackBarBehavior.floating,
@@ -120,10 +131,7 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
 
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
-    setState(() {
-      _sent = false;
-      _msgCtrl.clear();
-    });
+    setState(() { _sent = false; _msgCtrl.clear(); });
   }
 
   @override
@@ -136,19 +144,22 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
   Widget build(BuildContext context) {
     final lang = context.watch<LocaleState>().locale.languageCode;
     final isAr = lang == 'ar';
-    final types = _getTypes(lang);
+    final types     = _getTypes(lang);
     final audiences = _getAudiences(lang);
     final templates = _getTemplates(lang);
     final selectedType = types.firstWhere((t) => t['id'] == _selectedType);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(isAr ? 'بث رسالة للمشجعين' : 'Broadcast Message')),
+      appBar: AppBar(
+        title: Text(isAr ? 'بث رسالة للمشجعين' : 'Broadcast Message'),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Type selector
             _sectionLabel(isAr ? 'نوع الرسالة' : 'Message Type'),
             const SizedBox(height: 10),
             Row(
@@ -165,19 +176,35 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
                       decoration: BoxDecoration(
                         color: isSelected ? color : color.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: isSelected ? color : color.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: isSelected ? color : color.withValues(alpha: 0.3),
+                        ),
                       ),
-                      child: Column(children: [
-                        Icon(t['icon'] as IconData, size: 20, color: isSelected ? Colors.white : color),
-                        const SizedBox(height: 4),
-                        Text(t['label'] as String, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: isSelected ? Colors.white : color)),
-                      ]),
+                      child: Column(
+                        children: [
+                          Icon(t['icon'] as IconData,
+                              size: 20,
+                              color: isSelected ? Colors.white : color),
+                          const SizedBox(height: 4),
+                          Text(
+                            t['label'] as String,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: isSelected ? Colors.white : color,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
               }).toList(),
             ),
+
             const SizedBox(height: 20),
+
+            // Audience
             _sectionLabel(isAr ? 'المستهدفون' : 'Target Audience'),
             const SizedBox(height: 10),
             Wrap(
@@ -193,14 +220,26 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
                     decoration: BoxDecoration(
                       color: isSelected ? AppColors.primary : AppColors.surface,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: isSelected ? AppColors.primary : AppColors.border),
+                      border: Border.all(
+                        color: isSelected ? AppColors.primary : AppColors.border,
+                      ),
                     ),
-                    child: Text(a['label'] as String, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isSelected ? Colors.white : AppColors.textPrimary)),
+                    child: Text(
+                      a['label'] as String,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                      ),
+                    ),
                   ),
                 );
               }).toList(),
             ),
+
             const SizedBox(height: 20),
+
+            // Quick templates
             _sectionLabel(isAr ? 'قوالب سريعة' : 'Quick Templates'),
             const SizedBox(height: 10),
             SizedBox(
@@ -215,60 +254,111 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
                     onTap: () => setState(() => _msgCtrl.text = t),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.border)),
-                      child: Text(t.length > 28 ? '${t.substring(0, 28)}…' : t, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceAlt,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Text(
+                        t.length > 28 ? '${t.substring(0, 28)}…' : t,
+                        style: const TextStyle(
+                            fontSize: 11, color: AppColors.textSecondary),
+                      ),
                     ),
                   );
                 },
               ),
             ),
+
             const SizedBox(height: 20),
+
+            // Message input
             _sectionLabel(isAr ? 'نص الرسالة' : 'Message Text'),
             const SizedBox(height: 10),
             Container(
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: (selectedType['color'] as Color).withValues(alpha: 0.4), width: 1.5),
+                border: Border.all(
+                  color: (selectedType['color'] as Color).withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
               ),
               child: TextField(
                 controller: _msgCtrl,
                 maxLines: 4,
                 maxLength: 280,
-                decoration: InputDecoration(hintText: isAr ? 'اكتب رسالتك هنا...' : 'Type your message here...', border: InputBorder.none, contentPadding: const EdgeInsets.all(14)),
+                decoration: InputDecoration(
+                  hintText: isAr
+                      ? 'اكتب رسالتك هنا...'
+                      : 'Type your message here...',
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.all(14),
+                ),
               ),
             ),
+
             const SizedBox(height: 24),
+
+            // Preview
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: (selectedType['color'] as Color).withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: (selectedType['color'] as Color).withValues(alpha: 0.3)),
+                border: Border.all(
+                    color: (selectedType['color'] as Color).withValues(alpha: 0.3)),
               ),
-              child: Row(children: [
-                Icon(selectedType['icon'] as IconData, color: selectedType['color'] as Color, size: 22),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    _msgCtrl.text.isEmpty ? (isAr ? 'معاينة الرسالة...' : 'Message preview...') : _msgCtrl.text,
-                    style: TextStyle(fontSize: 13, color: _msgCtrl.text.isEmpty ? AppColors.textHint : AppColors.textPrimary),
+              child: Row(
+                children: [
+                  Icon(selectedType['icon'] as IconData,
+                      color: selectedType['color'] as Color, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _msgCtrl.text.isEmpty
+                          ? (isAr ? 'معاينة الرسالة...' : 'Message preview...')
+                          : _msgCtrl.text,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: _msgCtrl.text.isEmpty
+                            ? AppColors.textHint
+                            : AppColors.textPrimary,
+                      ),
+                    ),
                   ),
-                ),
-              ]),
+                ],
+              ),
             ),
+
             const SizedBox(height: 24),
+
             if (_sent)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: AppColors.greenPale, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.green.withValues(alpha: 0.4))),
-                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Icon(Icons.check_circle_rounded, color: AppColors.green, size: 20),
-                  const SizedBox(width: 8),
-                  Flexible(child: Text(isAr ? 'تم إرسال الرسالة بنجاح! ✅' : 'Broadcast sent successfully! ✅', overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.green, fontWeight: FontWeight.w700))),
-                ]),
+                decoration: BoxDecoration(
+                  color: AppColors.greenPale,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.green.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.check_circle_rounded,
+                        color: AppColors.green, size: 20),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        isAr ? 'تم إرسال الرسالة بنجاح! ✅' : 'Broadcast sent successfully! ✅',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: AppColors.green, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
               )
             else
               SizedBox(
@@ -276,13 +366,30 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
                 height: 52,
                 child: ElevatedButton.icon(
                   onPressed: _isSending ? null : () => _sendBroadcast(isAr),
-                  icon: _isSending ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.send_rounded, size: 18),
+                  icon: _isSending
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.send_rounded, size: 18),
                   label: Flexible(
-                    child: Text(_isSending ? (isAr ? 'جاري الإرسال...' : 'Sending...') : (isAr ? 'إرسال للجميع' : 'Send Broadcast'), overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    child: Text(
+                      _isSending
+                          ? (isAr ? 'جاري الإرسال...' : 'Sending...')
+                          : (isAr ? 'إرسال للجميع' : 'Send Broadcast'),
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w700),
+                    ),
                   ),
-                  style: ElevatedButton.styleFrom(backgroundColor: selectedType['color'] as Color),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: selectedType['color'] as Color,
+                  ),
                 ),
               ),
+
             const SizedBox(height: 20),
           ],
         ),
@@ -290,5 +397,11 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
     );
   }
 
-  Widget _sectionLabel(String label) => Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary));
+  Widget _sectionLabel(String label) => Text(
+        label,
+        style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary),
+      );
 }

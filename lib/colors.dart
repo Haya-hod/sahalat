@@ -1,98 +1,105 @@
 import 'package:flutter/material.dart';
 
-/// Comprehensive color palette for the Sahalat app
+///
+
 class AppColors {
-  // Primary Colors
+
   static const Color primary = Color(0xFF0061FF);
   static const Color primaryDark = Color(0xFF0048CC);
   static const Color primaryLight = Color(0xFF4D94FF);
-  static const Color primaryMid = Color(0xFF1E5FA8);
 
-  // Success Colors
+
   static const Color success = Color(0xFF10B981);
   static const Color successLight = Color(0xFFD1FAE5);
   static const Color successDark = Color(0xFF059669);
-
-  // Green variants
+  
   static const Color green = Color(0xFF16A34A);
   static const Color greenLight = Color(0xFF22C55E);
   static const Color greenPale = Color(0xFFDCFCE7);
+  static const Color primaryMid = Color(0xFF1E5FA8);
 
-  // Warning Colors
   static const Color warning = Color(0xFFF59E0B);
   static const Color warningLight = Color(0xFFFEF3C7);
   static const Color warningDark = Color(0xFFD97706);
-  static const Color yellow = Color(0xFFF1C40F);
-  static const Color orange = Color(0xFFE67E22);
 
-  // Error Colors
   static const Color error = Color(0xFFEF4444);
   static const Color errorLight = Color(0xFFFEE2E2);
   static const Color errorDark = Color(0xFFDC2626);
 
-  // Info Colors
   static const Color info = Color(0xFF3B82F6);
   static const Color infoLight = Color(0xFFDEBEFC);
   static const Color infoDark = Color(0xFF1F77F5);
-  static const Color blue = Color(0xFF2980B9);
 
-  // Background Colors
+
   static const Color background = Color(0xFFF8FAFC);
+
   static const Color surface = Color(0xFFFFFFFF);
+
   static const Color surfaceAlt = Color(0xFFF1F5F9);
+
   static const Color surfaceNeutral = Color(0xFFF3F4F6);
 
-  // Text Colors
+
   static const Color textPrimary = Color(0xFF0F172A);
+
   static const Color textSecondary = Color(0xFF475569);
+
   static const Color textHint = Color(0xFF94A3B8);
+
   static const Color textDisabled = Color(0xFFCBD5E1);
 
-  // Border Colors
+
   static const Color border = Color(0xFFE2E8F0);
+
   static const Color borderStrong = Color(0xFFCBD5E1);
+
   static const Color divider = Color(0xFFE2E8F0);
 
-  // Card Colors
+
   static const Color cardSuccessBg = Color(0xFFF0FDF4);
   static const Color cardSuccessBorder = Color(0xFFD1FAE5);
+
   static const Color cardWarningBg = Color(0xFFFEF3C7);
   static const Color cardWarningBorder = Color(0xFFFCD34D);
+
   static const Color cardErrorBg = Color(0xFFFEE2E2);
-  static const Color cardErrorBorder = Color(0xFFFCACACA);
+  static const Color cardErrorBorder = Color(0xFFFCACA);
+
   static const Color cardInfoBg = Color(0xFFEFF6FF);
   static const Color cardInfoBorder = Color(0xFFBFDBFE);
-
+  
   static const Color cardRed = Color(0xFFFEF2F2);
   static const Color cardYellow = Color(0xFFFFFBEB);
   static const Color cardBlue = Color(0xFFEFF6FF);
   static const Color cardGreen = Color(0xFFF0FDF4);
 
-  // Stadium Colors
+
   static const Color stadiumGreen = Color(0xFF16A34A);
   static const Color stadiumGreenLight = Color(0xFF86EFAC);
+
   static const Color seatBlue = Color(0xFF1E40AF);
   static const Color seatBlueDark = Color(0xFF1E3A8A);
-  static const Color gold = Color(0xFFD4AF37);
 
-  // Crowd Indicator Colors
+
   static const Color crowdLow = Color(0xFF10B981);
   static const Color crowdLowLight = Color(0xFFD1FAE5);
+
   static const Color crowdMedium = Color(0xFFF59E0B);
   static const Color crowdMediumLight = Color(0xFFFEF3C7);
+
   static const Color crowdHigh = Color(0xFFEF4444);
   static const Color crowdHighLight = Color(0xFFFEE2E2);
 
-  // Shadow Colors
+
   static const Color shadowLight = Color(0x0A000000);
   static const Color shadowMedium = Color(0x19000000);
   static const Color shadowDark = Color(0x33000000);
 
-  // Overlay Colors
+
   static const Color overlay = Color(0x4C000000);
   static const Color overlayLight = Color(0x19000000);
 
-  // Gradients
+
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -129,7 +136,7 @@ class AppColors {
     colors: [Color(0xFF0061FF), Color(0xFF10B981)],
   );
 
-  // Helper Functions
+
   static Color getCrowdColor(double percentage) {
     if (percentage < 30) {
       return crowdLow;
@@ -204,7 +211,7 @@ class AppColors {
     return luminance > 0.5 ? textPrimary : Colors.white;
   }
 
-  // Box Shadows
+
   static List<BoxShadow> get shadowSmall => [
     const BoxShadow(
       color: shadowLight,
@@ -230,13 +237,13 @@ class AppColors {
   ];
 }
 
-/// Build the app theme using AppColors
+
 ThemeData buildAppTheme() {
   return ThemeData(
     useMaterial3: true,
     primaryColor: AppColors.primary,
     scaffoldBackgroundColor: AppColors.background,
-
+    
     // AppBar Theme
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.primary,
@@ -341,9 +348,37 @@ ThemeData buildAppTheme() {
       thickness: 1,
     ),
 
+    // Checkbox Theme
+    checkboxTheme: CheckboxThemeData(
+      fillColor: MaterialStateProperty.all(AppColors.primary),
+      checkColor: MaterialStateProperty.all(Colors.white),
+    ),
+
+    // Radio Theme
+    radioTheme: RadioThemeData(
+      fillColor: MaterialStateProperty.all(AppColors.primary),
+    ),
+
+    // Switch Theme
+    switchTheme: SwitchThemeData(
+      thumbColor: MaterialStateProperty.resolveWith((states) {
+        if (states.contains(MaterialState.selected)) {
+          return AppColors.primary;
+        }
+        return Colors.grey;
+      }),
+      trackColor: MaterialStateProperty.resolveWith((states) {
+        if (states.contains(MaterialState.selected)) {
+          return AppColors.primary.withValues(alpha: 0.4);
+        }
+        return Colors.grey.withValues(alpha: 0.3);
+      }),
+    ),
+
     // Color Scheme
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.primary,
+      background: AppColors.background,
       surface: AppColors.surface,
       error: AppColors.error,
       errorContainer: AppColors.errorLight,

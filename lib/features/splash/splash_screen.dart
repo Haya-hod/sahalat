@@ -61,7 +61,6 @@ class _SplashScreenState extends State<SplashScreen>
         ),
         child: Stack(
           children: [
-            // Decorative circles
             Positioned(
               top: -60,
               right: -60,
@@ -99,7 +98,6 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
 
-            // Main content
             Center(
               child: FadeTransition(
                 opacity: _fade,
@@ -165,7 +163,6 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
 
-            // Footer
             Positioned(
               bottom: 40,
               left: 0,

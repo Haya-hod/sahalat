@@ -99,6 +99,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   // --- Helpers ---
 
+  bool get _hasAnyUnread =>
+      _notifs.any((n) => !n.isRead) ||
+      context.read<BroadcastStore>().unreadCount > 0;
+
   IconData _typeIcon(String type) {
     switch (type) {
       case 'warning':   return Icons.warning_rounded;
