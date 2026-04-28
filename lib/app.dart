@@ -26,7 +26,6 @@ import 'features/payment/payment_screen.dart';
 
 // Navigation
 import 'features/navigation/navigation_steps_screen.dart';
-import 'features/camera_nav/camera_nav_screen.dart';
 
 // New screens from teammate
 import 'features/notifications/notifications_screen.dart';
@@ -97,7 +96,6 @@ class SahalatApp extends StatelessWidget {
 
               // Navigation (GPS + A* + Crowd + Unity AR)
               NavigationStepsScreen.route: (_) => const NavigationStepsScreen(),
-              CameraNavScreen.route: (_) => const CameraNavScreen(),
 
               // New screens from teammate
               NotificationsScreen.route: (_) => const NotificationsScreen(),

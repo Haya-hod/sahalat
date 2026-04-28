@@ -9,7 +9,6 @@ import '../profile/profile_screen.dart';
 import '../tickets/tickets_screen.dart';
 import '../matches/matches_screen.dart';
 import '../match_details/match_details_screen.dart';
-import '../camera_nav/camera_nav_screen.dart';
 import '../../widgets/match_card.dart';
 import '../notifications/notifications_screen.dart';
 import '../ai/ai_recommendations_screen.dart';
@@ -120,14 +119,6 @@ class _UserView extends StatelessWidget {
           accentColor: AppColors.green,
           bgColor: AppColors.greenPale,
           onTap: () => Navigator.pushNamed(context, TicketsScreen.route),
-        ),
-        const SizedBox(height: 10),
-        _QuickTile(
-          icon: Icons.travel_explore_rounded,
-          label: l.t('nav_camera'),
-          accentColor: const Color(0xFF0891B2),
-          bgColor: const Color(0xFFE0F2FE),
-          onTap: () => Navigator.pushNamed(context, CameraNavScreen.route),
         ),
         const SizedBox(height: 10),
         _QuickTile(
